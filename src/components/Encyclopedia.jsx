@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { GTSRB_CLASSES, callClaude } from '../constants';
+import { GTSRB_CLASSES, SIGN_INFO } from '../constants';
 
 const SIGN_SHAPES = {
     speed: { shape: 'circle', border: '#EF4444', inner: '#FFFFFF', symbol: '#000' },
@@ -48,38 +48,18 @@ function SignIcon({ name, size = 48 }) {
     );
 }
 
-export default function Encyclopedia({ apiKey, isDark }) {
+export default function Encyclopedia({ isDark }) {
     const [search, setSearch] = useState('');
     const [selected, setSelected] = useState(null);
-    const [info, setInfo] = useState({});
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
 
     const filtered = GTSRB_CLASSES.filter(s => s.toLowerCase().includes(search.toLowerCase()));
 
-    const selectSign = useCallback(async (signName) => {
+    const selectSign = useCallback((signName) => {
         setSelected(signName);
-        setError(null);
-        if (info[signName]) return;
-        if (!apiKey) { setError('Please enter your API key in the sidebar.'); return; }
-        setLoading(true);
-        try {
-            const text = await callClaude(apiKey, [{
-                role: 'user',
-                content: `You are a traffic sign expert. Provide detailed information about the "${signName}" traffic sign from the German Traffic Sign Recognition Benchmark (GTSRB). Return ONLY valid JSON: { "description": "detailed 2-3 sentence description", "instruction": "specific driving instruction", "colorDescription": "colors used", "shapeDescription": "physical shape", "legalConsequences": "legal consequences of ignoring this sign", "category": "one of: Speed Regulation, Prohibition, Danger Warning, Mandatory, Other" }`
-            }]);
-            const jsonMatch = text.match(/\{[\s\S]*\}/);
-            if (!jsonMatch) throw new Error('Invalid response');
-            setInfo(prev => ({ ...prev, [signName]: JSON.parse(jsonMatch[0]) }));
-        } catch (e) {
-            setError(e.message);
-        } finally {
-            setLoading(false);
-        }
-    }, [apiKey, info]);
+    }, []);
 
     const dc = isDark;
-    const selectedInfo = selected ? info[selected] : null;
+    const selectedInfo = selected ? SIGN_INFO[selected] : null;
 
     return (
         <div className="space-y-6 animate-slide-up">
@@ -127,11 +107,6 @@ export default function Encyclopedia({ apiKey, isDark }) {
                             <div className="text-6xl mb-4">ℹ️</div>
                             <p className={dc ? 'text-gray-400' : 'text-gray-500'}>Select a sign to view details</p>
                         </div>
-                    ) : loading ? (
-                        <div className="flex flex-col items-center justify-center h-full min-h-[300px]">
-                            <div className="w-12 h-12 border-4 border-electric border-t-transparent rounded-full animate-spin mb-4"></div>
-                            <p className={dc ? 'text-gray-400' : 'text-gray-500'}>Loading sign information...</p>
-                        </div>
                     ) : (
                         <div className="space-y-5">
                             <div className="flex items-center gap-4">
@@ -155,7 +130,6 @@ export default function Encyclopedia({ apiKey, isDark }) {
                                     </div>
                                 </>
                             )}
-                            {error && <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm">⚠️ {error}</div>}
                         </div>
                     )}
                 </div>

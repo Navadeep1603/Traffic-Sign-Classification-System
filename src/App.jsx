@@ -29,8 +29,6 @@ export default function App() {
     const [currentView, setCurrentView] = useState('classify');
     const [isDarkMode, setIsDarkMode] = useState(true);
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [apiKey, setApiKey] = useState('');
-    const [showApiInput, setShowApiInput] = useState(false);
     const [classificationResult, setClassificationResult] = useState(null);
     const [classificationHistory, setClassificationHistory] = useState([]);
     const [selectedLanguage, setSelectedLanguage] = useState('en');
@@ -59,7 +57,7 @@ export default function App() {
             case 'classify':
                 return (
                     <>
-                        <Classification apiKey={apiKey} onResult={handleResult} isDark={dc} />
+                        <Classification onResult={handleResult} isDark={dc} />
                         {classificationResult && (
                             <>
                                 <ResultCard result={classificationResult} isDark={dc} />
@@ -72,15 +70,15 @@ export default function App() {
             case 'confidence':
                 return <ConfidenceDashboard result={classificationResult} isDark={dc} />;
             case 'gan':
-                return <GANGenerator apiKey={apiKey} isDark={dc} />;
+                return <GANGenerator isDark={dc} />;
             case 'metrics':
                 return <MetricsPanel isDark={dc} />;
             case 'camera':
-                return <LiveCamera apiKey={apiKey} onResult={handleResult} isDark={dc} />;
+                return <LiveCamera onResult={handleResult} isDark={dc} />;
             case 'history':
                 return <History history={classificationHistory} onClear={clearHistory} isDark={dc} />;
             case 'encyclopedia':
-                return <Encyclopedia apiKey={apiKey} isDark={dc} />;
+                return <Encyclopedia isDark={dc} />;
             case 'simulation':
                 return <AVSimulation isDark={dc} />;
             default:
@@ -136,19 +134,11 @@ export default function App() {
                         <span className="lg:hidden xl:inline">{dc ? 'Light Mode' : 'Dark Mode'}</span>
                     </button>
 
-                    {/* API Key */}
-                    <button onClick={() => setShowApiInput(!showApiInput)}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${apiKey ? 'text-emerald-400 hover:bg-emerald-500/10' : 'text-orange-400 hover:bg-orange-500/10'}`}>
-                        <span className="text-lg">{apiKey ? '🔑' : '⚠️'}</span>
-                        <span className="lg:hidden xl:inline">{apiKey ? 'API Connected' : 'Set API Key'}</span>
-                    </button>
-                    {showApiInput && (
-                        <div className="px-1">
-                            <input type="password" value={apiKey} onChange={e => setApiKey(e.target.value)}
-                                placeholder="sk-ant-..."
-                                className={`w-full px-3 py-2 text-xs rounded-lg outline-none ${dc ? 'bg-gray-700 text-white border-gray-600' : 'bg-gray-100 text-gray-800 border-gray-200'} border`} />
-                        </div>
-                    )}
+                    {/* Status */}
+                    <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-emerald-400`}>
+                        <span className="text-lg">✅</span>
+                        <span className="lg:hidden xl:inline">AI Ready</span>
+                    </div>
                 </div>
             </aside>
 
@@ -172,13 +162,9 @@ export default function App() {
                                 <p className={`text-xs ${dc ? 'text-gray-500' : 'text-gray-400'}`}>Powered by CNN + GAN Deep Learning</p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                            {!apiKey && (
-                                <span className="hidden sm:inline px-3 py-1.5 bg-orange-500/10 text-orange-400 text-xs font-medium rounded-full border border-orange-500/30">
-                                    ⚠️ API Key Required
-                                </span>
-                            )}
-                        </div>
+                        <span className="hidden sm:inline px-3 py-1.5 bg-emerald-500/10 text-emerald-400 text-xs font-medium rounded-full border border-emerald-500/30">
+                            ✅ Offline Mode — No API Key Needed
+                        </span>
                     </div>
                 </header>
 

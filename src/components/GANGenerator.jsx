@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { GTSRB_CLASSES, callClaude } from '../constants';
+import { GTSRB_CLASSES, mockGANGenerate } from '../constants';
 
-export default function GANGenerator({ apiKey, isDark }) {
+export default function GANGenerator({ isDark }) {
     const [selectedSign, setSelectedSign] = useState(GTSRB_CLASSES[14]);
     const [asciiArt, setAsciiArt] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
     const [training, setTraining] = useState(false);
     const [epoch, setEpoch] = useState(0);
     const [gLoss, setGLoss] = useState(4.5);
@@ -13,21 +12,13 @@ export default function GANGenerator({ apiKey, isDark }) {
     const intervalRef = useRef(null);
 
     const generateSign = useCallback(async () => {
-        if (!apiKey) { setError('Please enter your API key in the sidebar.'); return; }
         setLoading(true);
-        setError(null);
-        try {
-            const text = await callClaude(apiKey, [{
-                role: 'user',
-                content: `You are a GAN (Generative Adversarial Network) expert. A DCGAN is being used to generate synthetic traffic sign images for the GTSRB dataset. Generate a detailed ASCII art representation of a "${selectedSign}" traffic sign. The ASCII art should be at least 15 lines tall and clearly recognizable. Also briefly describe the pixel patterns, colors, and shapes that a GAN would generate for this sign. Format your response as:\n\nDESCRIPTION:\n[your description here]\n\nASCII ART:\n[your ascii art here]`
-            }]);
-            setAsciiArt(text);
-        } catch (e) {
-            setError(e.message);
-        } finally {
-            setLoading(false);
-        }
-    }, [apiKey, selectedSign]);
+        // Simulate processing delay
+        await new Promise(r => setTimeout(r, 800 + Math.random() * 700));
+        const text = mockGANGenerate(selectedSign);
+        setAsciiArt(text);
+        setLoading(false);
+    }, [selectedSign]);
 
     const startTraining = useCallback(() => {
         setTraining(true);
@@ -73,8 +64,6 @@ export default function GANGenerator({ apiKey, isDark }) {
                 </div>
             </div>
 
-            {error && <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400">⚠️ {error}</div>}
-
             {/* ASCII Art Output */}
             {asciiArt && (
                 <div className={`rounded-2xl overflow-hidden ${dc ? 'bg-gray-800' : 'bg-white'} shadow-lg`}>
@@ -118,7 +107,6 @@ export default function GANGenerator({ apiKey, isDark }) {
                     </button>
                 </div>
                 <div className="space-y-4">
-                    {/* Epoch Progress */}
                     <div>
                         <div className="flex justify-between text-sm mb-1">
                             <span className={dc ? 'text-gray-400' : 'text-gray-500'}>Epoch Progress</span>
@@ -129,7 +117,6 @@ export default function GANGenerator({ apiKey, isDark }) {
                                 style={{ width: `${(epoch / 200) * 100}%` }} />
                         </div>
                     </div>
-                    {/* Losses */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className={`p-4 rounded-xl text-center ${dc ? 'bg-gray-700' : 'bg-gray-100'}`}>
                             <p className={`text-xs font-medium mb-1 ${dc ? 'text-gray-400' : 'text-gray-500'}`}>Generator Loss</p>

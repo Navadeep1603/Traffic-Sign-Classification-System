@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { callClaude } from '../constants';
+import { mockClassify } from '../constants';
 
-export default function LiveCamera({ apiKey, onResult, isDark }) {
+export default function LiveCamera({ onResult, isDark }) {
     const [active, setActive] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -28,8 +28,8 @@ export default function LiveCamera({ apiKey, onResult, isDark }) {
     }, []);
 
     const capture = useCallback(async () => {
-        if (!videoRef.current || !apiKey) {
-            setError(!apiKey ? 'Please enter your API key in the sidebar.' : 'Camera not ready.');
+        if (!videoRef.current) {
+            setError('Camera not ready.');
             return;
         }
         setLoading(true);
@@ -40,27 +40,19 @@ export default function LiveCamera({ apiKey, onResult, isDark }) {
             canvas.height = videoRef.current.videoHeight;
             canvas.getContext('2d').drawImage(videoRef.current, 0, 0);
             const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-            const base64 = dataUrl.split(',')[1];
-            const text = await callClaude(apiKey, [{
-                role: 'user',
-                content: [
-                    { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: base64 } },
-                    { type: 'text', text: 'You are a traffic sign classification expert. Analyze this camera frame and identify any traffic sign visible. Return ONLY valid JSON: { "signName": string, "category": string, "confidence": number (0-100), "instruction": string, "warningLevel": "low"|"medium"|"high", "germanGTSRBClass": number (0-42), "topPredictions": [{"name": string, "confidence": number}, {"name": string, "confidence": number}, {"name": string, "confidence": number}] }' }
-                ]
-            }]);
-            const jsonMatch = text.match(/\{[\s\S]*\}/);
-            if (!jsonMatch) throw new Error('Invalid response');
-            const result = JSON.parse(jsonMatch[0]);
+            // Simulate AI processing delay
+            await new Promise(r => setTimeout(r, 1200 + Math.random() * 800));
+            const result = mockClassify();
             result.image = dataUrl;
             result.timestamp = new Date().toISOString();
             setLastDetection(result);
             onResult(result);
         } catch (e) {
-            setError(e.message || 'Classification failed.');
+            setError('Classification failed.');
         } finally {
             setLoading(false);
         }
-    }, [apiKey, onResult]);
+    }, [onResult]);
 
     const dc = isDark;
 
@@ -75,7 +67,6 @@ export default function LiveCamera({ apiKey, onResult, isDark }) {
             </div>
 
             <div className={`rounded-2xl overflow-hidden ${dc ? 'bg-gray-800' : 'bg-white'} shadow-lg`}>
-                {/* Video Frame */}
                 <div className="relative bg-black aspect-video">
                     {active ? (
                         <>
@@ -104,7 +95,6 @@ export default function LiveCamera({ apiKey, onResult, isDark }) {
                     )}
                 </div>
 
-                {/* Controls */}
                 <div className="p-5 flex gap-3">
                     <button onClick={active ? stopCamera : startCamera}
                         className={`flex-1 py-3 px-6 font-semibold rounded-xl transition-all ${active
